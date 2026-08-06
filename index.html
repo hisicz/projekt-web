@@ -3,65 +3,42 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="description" content="Moderní webová prezentace." />
-    <title>Moje stránka</title>
+    <meta name="description" content="České kostky – klasická hra Jedničky a pětky." />
+    <title>České kostky</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap"
-      rel="stylesheet"
-    />
+    <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Nunito:wght@600;700;800;900&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="style.css" />
   </head>
   <body>
-    <header class="header">
-      <a class="logo" href="#uvod" aria-label="Moje stránka – úvod">studio<span>.</span></a>
-      <button class="menu-button" type="button" aria-label="Otevřít menu" aria-expanded="false">
-        <span></span><span></span>
-      </button>
-      <nav class="navigation" aria-label="Hlavní navigace">
-        <a href="#sluzby">Služby</a>
-        <a href="#o-nas">O nás</a>
-        <a class="button button-small" href="#kontakt">Napište nám</a>
-      </nav>
-    </header>
+    <main class="game-shell">
+      <header>
+        <div class="brand"><span class="die-mini">⚄</span><div><p>KLASICKÁ HRA</p><h1>České kostky</h1></div></div>
+        <button id="new-game" class="text-button" type="button">↻ Nová hra</button>
+      </header>
 
-    <main>
-      <section class="hero" id="uvod">
-        <p class="eyebrow">Digitální studio</p>
-        <h1>Dobré nápady si zaslouží <em>skvělý</em> web.</h1>
-        <p class="hero-text">Vytváříme jednoduché a zapamatovatelné digitální zážitky, které dávají vašemu podnikání prostor růst.</p>
-        <a class="button" href="#kontakt">Začít projekt <span aria-hidden="true">→</span></a>
+      <section class="scoreboard" aria-label="Skóre hry">
+        <div class="score-card player-card active" id="human-card"><span>TY</span><strong id="human-score">0</strong><small>bodů</small></div>
+        <div class="turn-status"><span id="turn-label">Tvůj tah</span><b id="round-score">0</b><small>body v tahu</small></div>
+        <div class="score-card computer-card" id="computer-card"><span>POČÍTAČ</span><strong id="computer-score">0</strong><small>bodů</small></div>
       </section>
 
-      <section class="services section" id="sluzby">
-        <div class="section-heading">
-          <p class="eyebrow">Co umíme</p>
-          <h2>Od první myšlenky až po spuštění.</h2>
-        </div>
-        <div class="service-grid">
-          <article class="service-card"><span>01</span><h3>Strategie</h3><p>Najdeme směr, cíle a obsah, který bude fungovat pro vaše publikum.</p></article>
-          <article class="service-card"><span>02</span><h3>Design</h3><p>Navrhneme jasnou vizuální identitu a rozhraní, které se dobře používá.</p></article>
-          <article class="service-card"><span>03</span><h3>Vývoj</h3><p>Rychlý, přístupný a responzivní web připravený pro každé zařízení.</p></article>
+      <section class="board" aria-live="polite">
+        <p class="hint" id="hint">Hoď kostkami a vyber ty, které chceš odložit.</p>
+        <div class="dice-area" id="dice-area" aria-label="Hrací kostky"></div>
+        <p class="selection-info" id="selection-info">Vybráno: 0 bodů</p>
+        <div class="actions">
+          <button class="primary-button" id="roll-button" type="button">Hodit kostkami <span>🎲</span></button>
+          <button class="secondary-button" id="bank-button" type="button" disabled>Uložit body</button>
         </div>
       </section>
 
-      <section class="about section" id="o-nas">
-        <div>
-          <p class="eyebrow">Náš přístup</p>
-          <h2>Méně složitostí. Více podstaty.</h2>
-        </div>
-        <p>Každý projekt stavíme na dobré spolupráci, poctivém řemesle a detailech, které lidé opravdu ocení.</p>
-      </section>
-
-      <section class="contact section" id="kontakt">
-        <p class="eyebrow">Máte nápad?</p>
-        <h2>Pojďme ho společně proměnit ve skutečnost.</h2>
-        <a href="mailto:ahoj@studio.cz">ahoj@studio.cz <span aria-hidden="true">↗</span></a>
+      <section class="rules">
+        <div><p class="rules-label">JAK HRÁT</p><h2>Nasbírej 10 000 bodů.</h2></div>
+        <div class="rules-text"><p>Po každém hodu můžeš odložit libovolné kostky. Můžeš házet znovu a riskovat body v tahu, nebo je uložit. Když nepadne žádná bodovaná kombinace, o body z tahu přijdeš.</p><details><summary>Bodování kombinací</summary><ul><li>1 = 100 bodů · 5 = 50 bodů</li><li>Trojice: 1 = 1 000, ostatní čísla = hodnota × 100</li><li>Čtyři, pět a šest stejných kostek násobí trojici 2×, 3× a 4×</li><li>Tři páry = 750 · postupka 1–6 = 1 500 bodů</li></ul></details></div>
       </section>
     </main>
-
-    <footer><span>© <span id="year"></span> studio.</span><a href="#uvod">Zpět nahoru ↑</a></footer>
+    <div class="modal hidden" id="modal" role="dialog" aria-modal="true" aria-labelledby="modal-title"><div class="modal-content"><span class="trophy">🏆</span><h2 id="modal-title">Vyhráváš!</h2><p id="modal-text"></p><button class="primary-button" id="play-again" type="button">Hrát znovu</button></div></div>
     <script src="script.js"></script>
   </body>
 </html>

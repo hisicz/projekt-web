@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="cs">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="Moderní webová prezentace." />
+    <title>Moje stránka</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <header class="header">
+      <a class="logo" href="#uvod" aria-label="Moje stránka – úvod">studio<span>.</span></a>
+      <button class="menu-button" type="button" aria-label="Otevřít menu" aria-expanded="false">
+        <span></span><span></span>
+      </button>
+      <nav class="navigation" aria-label="Hlavní navigace">
+        <a href="#sluzby">Služby</a>
+        <a href="#o-nas">O nás</a>
+        <a class="button button-small" href="#kontakt">Napište nám</a>
+      </nav>
+    </header>
+
+    <main>
+      <section class="hero" id="uvod">
+        <p class="eyebrow">Digitální studio</p>
+        <h1>Dobré nápady si zaslouží <em>skvělý</em> web.</h1>
+        <p class="hero-text">Vytváříme jednoduché a zapamatovatelné digitální zážitky, které dávají vašemu podnikání prostor růst.</p>
+        <a class="button" href="#kontakt">Začít projekt <span aria-hidden="true">→</span></a>
+      </section>
+
+      <section class="services section" id="sluzby">
+        <div class="section-heading">
+          <p class="eyebrow">Co umíme</p>
+          <h2>Od první myšlenky až po spuštění.</h2>
+        </div>
+        <div class="service-grid">
+          <article class="service-card"><span>01</span><h3>Strategie</h3><p>Najdeme směr, cíle a obsah, který bude fungovat pro vaše publikum.</p></article>
+          <article class="service-card"><span>02</span><h3>Design</h3><p>Navrhneme jasnou vizuální identitu a rozhraní, které se dobře používá.</p></article>
+          <article class="service-card"><span>03</span><h3>Vývoj</h3><p>Rychlý, přístupný a responzivní web připravený pro každé zařízení.</p></article>
+        </div>
+      </section>
+
+      <section class="about section" id="o-nas">
+        <div>
+          <p class="eyebrow">Náš přístup</p>
+          <h2>Méně složitostí. Více podstaty.</h2>
+        </div>
+        <p>Každý projekt stavíme na dobré spolupráci, poctivém řemesle a detailech, které lidé opravdu ocení.</p>
+      </section>
+
+      <section class="contact section" id="kontakt">
+        <p class="eyebrow">Máte nápad?</p>
+        <h2>Pojďme ho společně proměnit ve skutečnost.</h2>
+        <a href="mailto:ahoj@studio.cz">ahoj@studio.cz <span aria-hidden="true">↗</span></a>
+      </section>
+    </main>
+
+    <footer><span>© <span id="year"></span> studio.</span><a href="#uvod">Zpět nahoru ↑</a></footer>
+    <script src="script.js"></script>
+  </body>
+</html>

@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="description" content="Chytrá lednice – přehled potravin, receptů a nákupního seznamu.">
+  <meta name="description" content="Chytrá lednice - přehled potravin, receptů a nákupního seznamu.">
   <title>Chytrá lednice</title>
   <link rel="stylesheet" href="fridge.css">
 </head>
@@ -12,7 +12,6 @@
     <header class="topbar">
       <a class="brand" href="fridge.html"><span class="brand-icon">❄</span> Chytrá <strong>lednice</strong></a>
       <div class="topbar-actions">
-        <a class="planner-link" href="index.html">StudentPlan</a>
         <button id="theme-toggle" class="icon-button" type="button" aria-label="Přepnout tmavý režim">☾</button>
       </div>
     </header>
@@ -41,15 +40,15 @@
         </section>
 
         <section class="panel shopping-panel">
-          <div class="section-heading"><div><p class="eyebrow">NEZAPOMENOUT</p><h2>Nákupní seznam</h2></div><button id="clear-shopping" class="text-button" type="button">Vymazat</button></div>
+          <div class="section-heading"><div><p class="eyebrow">NEZAPOMENOUT</p><h2>Nutno dokoupit</h2></div><button id="clear-shopping" class="text-button" type="button">Vymazat</button></div>
           <ul id="shopping-list" class="shopping-list"></ul>
-          <p id="shopping-empty" class="empty-message">Nákupní seznam je prázdný.</p>
+          <p id="shopping-empty" class="empty-message">Nutno dokoupit je prázdné.</p>
         </section>
       </div>
 
       <section class="recipes-section">
-        <div class="section-heading"><div><p class="eyebrow">CO UVAŘIT?</p><h2>Recepty z tvých surovin</h2></div><p class="heading-note">Shoda vychází z ingrediencí v lednici.</p></div>
-        <div id="recipe-list" class="recipe-list"></div>
+        <div class="section-heading"><div><p class="eyebrow">CO UVAŘIT?</p><h2>Recepty z tvých surovin</h2></div><div class="recipe-actions"><p class="heading-note">Shoda vychází z ingrediencí v lednici.</p><button id="open-recipe-form" class="primary-button" type="button">＋ Přidat recept</button></div></div>
+        <div id="recipe-list" class="recipe-list"></div><p id="recipe-empty" class="empty-message">Zatím nemáš žádné recepty. Přidej svůj první recept.</p>
       </section>
     </main>
   </div>
@@ -58,18 +57,48 @@
     <form id="food-form">
       <div class="dialog-heading"><div><p class="eyebrow">NOVÁ POTRAVINA</p><h2>Přidat do lednice</h2></div><button class="close-dialog icon-button" type="button" aria-label="Zavřít">×</button></div>
       <div class="form-grid">
-        <label>Název potraviny<input id="food-name" required maxlength="50" placeholder="Např. Rajčata"></label>
-        <label>Množství<input id="food-amount" required maxlength="30" placeholder="Např. 500 g nebo 2 ks"></label>
-        <label>Kategorie<select id="food-category"><option>Zelenina</option><option>Ovoce</option><option>Mléčné výrobky</option><option>Maso a ryby</option><option>Pečivo</option><option>Trvanlivé</option><option>Nápoje</option><option>Ostatní</option></select></label>
+        <label>Název suroviny
+          <select id="food-name" required>
+            <option value="" selected disabled>Vyber surovinu</option>
+            <option>Bílý jogurt</option><option>Brokolice</option><option>Hrášek</option><option>Klobása</option><option>Kuřecí maso</option><option>Květák</option><option>Máslo</option><option>Mléko</option><option>Mrkev</option><option>Okurka</option><option>Paprika</option><option>Pomazánkové máslo</option><option>Rajčata</option><option>Ředkvičky</option><option>Slanina</option><option>Smetana</option><option>Špekáčky</option><option>Šunka</option><option>Tvaroh</option><option>Tvrdý sýr</option><option>Uzenina</option><option>Vejce</option><option>Zakysaná smetana</option>
+          </select>
+        </label>
+        <label>Množství<input id="food-amount" type="number" min="0" step="any" required placeholder="Např. 500"></label>
+        <label>Jednotka<select id="food-unit" required><option value="g">gramů</option><option value="ml">mililitrů</option><option value="ks">kusů</option></select></label>
         <label>Datum spotřeby<input id="food-expiry" type="date" required></label>
       </div>
       <div class="dialog-actions"><button class="text-button close-dialog" type="button">Zrušit</button><button class="primary-button" type="submit">Uložit potravinu</button></div>
     </form>
   </dialog>
 
+
+  <dialog id="recipe-dialog" class="food-dialog">
+    <form id="recipe-form">
+      <div class="dialog-heading"><div><p class="eyebrow">NOVÝ RECEPT</p><h2>Přidat recept</h2></div><button class="close-recipe-dialog icon-button" type="button" aria-label="Zavřít">×</button></div>
+      <div class="form-grid">
+        <label>Název receptu<input id="recipe-name" required maxlength="60" placeholder="Např. Těstovinový salát"></label>
+        <label>Typ jídla<input id="recipe-type" required maxlength="30" placeholder="Např. Rychlý oběd"></label>
+        <label>Emoji<input id="recipe-emoji" maxlength="8" value="🍲" placeholder="🍲"></label>
+      </div>
+      <div class="ingredients-editor">
+        <div class="ingredients-editor-heading"><b>Suroviny</b><button id="add-ingredient" class="text-button" type="button">＋ Přidat surovinu</button></div>
+        <div id="recipe-ingredients" class="ingredient-rows"></div>
+      </div>
+      <p class="form-help">U každé suroviny vyplň název, číselné množství a vyber jednotku.</p>
+      <div class="dialog-actions"><button class="text-button close-recipe-dialog" type="button">Zrušit</button><button class="primary-button" type="submit">Uložit recept</button></div>
+    </form>
+  </dialog>
   <template id="food-template"><article class="food-item"><span class="category-icon"></span><div class="food-details"><h3></h3><p></p></div><div class="expiry"><strong></strong><span></span></div><button class="delete-food" type="button" aria-label="Smazat potravinu">×</button></article></template>
-  <template id="recipe-template"><article class="recipe-card"><div class="recipe-top"><span class="recipe-emoji"></span><div><p class="recipe-type"></p><h3></h3></div></div><div class="match-row"><div class="match-bar"><i></i></div><strong class="match-percent"></strong></div><p class="ingredient-info"></p><div class="missing-ingredients"></div><button class="add-missing" type="button">＋ Přidat chybějící na nákup</button></article></template>
+  <template id="recipe-template"><article class="recipe-card"><div class="recipe-top"><span class="recipe-emoji"></span><div><p class="recipe-type"></p><h3></h3></div></div><div class="match-row"><div class="match-bar"><i></i></div><strong class="match-percent"></strong></div><p class="ingredient-info"></p><div class="missing-ingredients"></div><button class="add-missing" type="button">＋ Přidat chybějící na nákup</button><button class="delete-recipe" type="button">Smazat recept</button></article></template>
 
   <script src="fridge.js"></script>
 </body>
 </html>
+
+
+
+
+
+
+
+

@@ -79,3 +79,19 @@ h1 span { color: #d9ffe8; }
 @keyframes slide-in { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
 @media (max-width: 760px) { .app-shell { width: min(100% - 24px, 1140px); }.hero { min-height: 178px; padding: 29px 25px; }.hero-art { display: none; }.stats { gap: 9px; margin-bottom: 30px; }.stats article { padding: 13px 9px; gap: 8px; }.stat-icon { width: 34px; height: 34px; font-size: 16px; }.stats strong { font-size: 18px; }.stats p { font-size: 11px; }.page-grid { grid-template-columns: 1fr; }.recipe-list { grid-template-columns: 1fr; }.heading-note { display: none; } }
 @media (max-width: 430px) { .topbar { height: 68px; }.planner-link { display: none; }.hero h1 { font-size: 27px; }.panel { padding: 16px; }.food-item { grid-template-columns: 34px 1fr 28px; }.expiry { grid-column: 2; text-align: left; }.delete-food { grid-row: span 2; }.form-grid { grid-template-columns: 1fr; }.section-heading h2 { font-size: 20px; } }
+
+.recipe-actions { display: flex; align-items: center; gap: 12px; }
+.delete-recipe { width: 100%; margin-top: 8px; border: 0; background: none; color: var(--muted); font-size: 12px; }
+.delete-recipe:hover { color: var(--danger); }
+.form-help { margin: 10px 0 0; color: var(--muted); font-size: 12px; }
+
+.ingredients-editor { margin-top: 18px; }
+.ingredients-editor-heading { display: flex; justify-content: space-between; align-items: center; margin-bottom: 9px; font-size: 13px; }
+.ingredient-rows { display: grid; gap: 8px; }
+.ingredient-row { display: grid; grid-template-columns: 1.4fr .7fr .8fr auto; gap: 7px; }
+.ingredient-row input, .ingredient-row select { min-width: 0; height: 40px; padding: 0 9px; border: 1px solid var(--line); border-radius: 8px; background: var(--background); color: var(--text); outline-color: var(--primary); }
+.remove-ingredient { border: 0; border-radius: 8px; padding: 0 9px; background: var(--primary-soft); color: var(--primary); font-size: 12px; font-weight: 700; }
+@media (max-width: 500px) { .ingredient-row { grid-template-columns: 1fr 1fr; }.ingredient-row input:first-child { grid-column: span 2; } }
+
+.recipe-card.complete { border-color: var(--primary); }
+.recipe-card.complete .match-percent { color: var(--primary); }

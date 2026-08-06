@@ -1,44 +1,69 @@
-<!DOCTYPE html>
+﻿<!doctype html>
 <html lang="cs">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="description" content="České kostky – klasická hra Jedničky a pětky." />
-    <title>České kostky</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Nunito:wght@600;700;800;900&display=swap" rel="stylesheet" />
-    <link rel="stylesheet" href="style.css" />
-  </head>
-  <body>
-    <main class="game-shell">
-      <header>
-        <div class="brand"><span class="die-mini">⚄</span><div><p>KLASICKÁ HRA</p><h1>České kostky</h1></div></div>
-        <button id="new-game" class="text-button" type="button">↻ Nová hra</button>
-      </header>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Student Test Planner</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header>
+    <a href="#">✓ Student<span>Plan</span></a>
+    <div>
+      <button id="theme" aria-label="Přepnout režim">☾</button>
+      <button class="primary" id="add">+ Přidat test</button>
+    </div>
+  </header>
 
-      <section class="scoreboard" aria-label="Skóre hry">
-        <div class="score-card player-card active" id="human-card"><span>TY</span><strong id="human-score">0</strong><small>bodů</small></div>
-        <div class="turn-status"><span id="turn-label">Tvůj tah</span><b id="round-score">0</b><small>body v tahu</small></div>
-        <div class="score-card computer-card" id="computer-card"><span>POČÍTAČ</span><strong id="computer-score">0</strong><small>bodů</small></div>
-      </section>
+  <main>
+    <section class="hero">
+      <div>
+        <small>STUDIJNÍ PŘEHLED</small>
+        <h1>Ahoj, studente! <em>Co tě čeká?</em></h1>
+        <p id="welcome"></p>
+      </div>
+      <b aria-hidden="true">✦</b>
+    </section>
 
-      <section class="board" aria-live="polite">
-        <p class="hint" id="hint">Hoď kostkami a vyber ty, které chceš odložit.</p>
-        <div class="dice-area" id="dice-area" aria-label="Hrací kostky"></div>
-        <p class="selection-info" id="selection-info">Vybráno: 0 bodů</p>
-        <div class="actions">
-          <button class="primary-button" id="roll-button" type="button">Hodit kostkami <span>🎲</span></button>
-          <button class="secondary-button" id="bank-button" type="button" disabled>Uložit body</button>
-        </div>
-      </section>
+    <section class="stats" aria-label="Rychlý přehled">
+      <article>▣ <div><strong id="all">0</strong><span>všechny testy</span></div></article>
+      <article>◷ <div><strong id="week">0</strong><span>tento týden</span></div></article>
+      <article>✓ <div><strong id="progress">0 %</strong><span>témat splněno</span></div></article>
+    </section>
 
-      <section class="rules">
-        <div><p class="rules-label">JAK HRÁT</p><h2>Nasbírej 10 000 bodů.</h2></div>
-        <div class="rules-text"><p>Po každém hodu můžeš odložit libovolné kostky. Můžeš házet znovu a riskovat body v tahu, nebo je uložit. Když nepadne žádná bodovaná kombinace, o body z tahu přijdeš.</p><details><summary>Bodování kombinací</summary><ul><li>1 = 100 bodů · 5 = 50 bodů</li><li>Trojice: 1 = 1 000, ostatní čísla = hodnota × 100</li><li>Čtyři, pět a šest stejných kostek násobí trojici 2×, 3× a 4×</li><li>Tři páry = 750 · postupka 1–6 = 1 500 bodů</li></ul></details></div>
-      </section>
-    </main>
-    <div class="modal hidden" id="modal" role="dialog" aria-modal="true" aria-labelledby="modal-title"><div class="modal-content"><span class="trophy">🏆</span><h2 id="modal-title">Vyhráváš!</h2><p id="modal-text"></p><button class="primary-button" id="play-again" type="button">Hrát znovu</button></div></div>
-    <script src="script.js"></script>
-  </body>
+    <section>
+      <div class="heading">
+        <div><small>MŮJ PLÁN</small><h2>Nadcházející testy</h2></div>
+        <button id="clear">Zrušit filtry</button>
+      </div>
+      <div class="filters">
+        <input id="search" type="search" placeholder="⌕ Hledat předmět...">
+        <select id="priority"><option value="all">Všechny priority</option><option value="high">Vysoká priorita</option><option value="medium">Střední priorita</option><option value="low">Nízká priorita</option></select>
+        <select id="status"><option value="all">Všechny stavy</option><option value="open">K učení</option><option value="done">Hotovo</option></select>
+      </div>
+      <div id="list"></div>
+      <div class="empty" id="empty"><b>✎</b><h3>Zatím tu nic není</h3><p>Přidej první test a vytvoř si klidnější plán.</p><button class="primary" id="emptyAdd">＋ Přidat test</button></div>
+    </section>
+  </main>
+
+  <!-- Formulář pro vytvoření nebo úpravu testu. -->
+  <dialog id="modal">
+    <form id="form">
+      <div class="modalHead"><div><small>NOVÝ ZÁZNAM</small><h2 id="modalTitle">Přidat test</h2></div><button type="button" class="close">×</button></div>
+      <input id="id" type="hidden">
+      <div class="grid">
+        <label>Předmět<input id="subject" required placeholder="Např. Matematika"></label>
+        <label>Datum a čas<input id="date" type="datetime-local" required></label>
+        <label>Obtížnost<select id="difficulty"><option value="high">Vysoká</option><option value="medium">Střední</option><option value="low">Nízká</option></select></label>
+        <label class="wide">Poznámka<textarea id="note" placeholder="Na co se zaměřit?"></textarea></label>
+      </div>
+      <div class="topicBox"><b>Témata k naučení</b><small>Enter pro přidání</small><div id="chips"></div><input id="topic" placeholder="Např. Derivace funkcí"></div>
+      <div class="actions"><button type="button" class="close">Zrušit</button><button class="primary">Uložit test</button></div>
+    </form>
+  </dialog>
+
+  <!-- Šablona jedné karty testu, kterou JavaScript naplní daty. -->
+  <template id="card"><article class="card"><div class="date"><b></b><small></small></div><div><div class="cardHead"><div><i></i><h3></h3></div><div><button class="edit">✎</button><button class="delete">×</button></div></div><p class="count"></p><p class="note"></p><div class="prog"><span>Témata k naučení</span><b></b></div><div class="bar"><i></i></div><div class="topics"></div></div></article></template>
+  <script src="script.js"></script>
+</body>
 </html>

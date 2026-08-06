@@ -1,247 +1,219 @@
-// České kostky – jednoduchá verze k přečtení.
-// Každá proměnná popisuje přímo jednu věc ve hře.
+﻿// Student Test Planner
+// Data jsou uložená v Local Storage, takže zůstanou i po obnově stránky.
 
-const obrazkyKostek = ['⚀', '⚁', '⚂', '⚃', '⚄', '⚅'];
-const cil = 10000;
+const STORAGE_KEY = 'student-tests';
+const THEME_KEY = 'student-theme';
 
-let mojeBody = 0;
-let bodyPocitace = 0;
-let bodyVTahu = 0;
-let kostky = [];
-let vybraneKostky = [];
-let tahHrace = true;
-let cekamNaVyber = false;
-let probihaHod = false;
+const $ = (selector) => document.querySelector(selector);
 
-const plochaKostek = document.querySelector('#dice-area');
-const napoveda = document.querySelector('#hint');
-const tlacitkoHodit = document.querySelector('#roll-button');
-const tlacitkoUlozit = document.querySelector('#bank-button');
+let tests = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
+let draftTopics = [];
 
-// Vrátí náhodné číslo od 1 do 6.
-function nahodnaKostka() {
-  return Math.floor(Math.random() * 6) + 1;
+function escapeHtml(text) {
+  const element = document.createElement('div');
+  element.textContent = text;
+  return element.innerHTML;
 }
 
-// Spočítá body za vybrané kostky.
-function spocitejBody(vyber) {
-  if (vyber.length === 0) return 0;
+function isToday(date) {
+  return new Date(date).toDateString() === new Date().toDateString();
+}
 
-  const kolik = [0, 0, 0, 0, 0, 0];
-  vyber.forEach((hodnota) => kolik[hodnota - 1]++);
+function isFinished(test) {
+  return test.topics.length > 0 && test.topics.every((topic) => topic.done);
+}
 
-  // Zvláštní kombinace platí jen při výběru všech šesti kostek.
-  if (vyber.length === 6 && kolik.every((pocet) => pocet === 1)) return 1500;
-  if (vyber.length === 6 && kolik.filter((pocet) => pocet === 2).length === 3) return 750;
+function priorityLabel(priority) {
+  return { high: 'Vysoká priorita', medium: 'Střední priorita', low: 'Nízká priorita' }[priority];
+}
 
-  let body = 0;
-  kolik.forEach((pocet, index) => {
-    const hodnota = index + 1;
+// Vytvoří český, dobře čitelný odpočet do testu.
+function getCountdown(date) {
+  const hours = Math.ceil((new Date(date) - new Date()) / 36e5);
+  if (hours < 0) return 'Termín už proběhl';
+  if (hours < 1) return 'Za méně než hodinu';
+  if (hours < 24) return `Za ${hours} ${hours === 1 ? 'hodinu' : hours < 5 ? 'hodiny' : 'hodin'}`;
 
-    // Trojice a více stejných kostek.
-    if (pocet >= 3) {
-      const bodyZaTrojici = hodnota === 1 ? 1000 : hodnota * 100;
-      body += bodyZaTrojici * (pocet - 2);
-    // Samostatné jedničky a pětky.
-    } else if (hodnota === 1) {
-      body += pocet * 100;
-    } else if (hodnota === 5) {
-      body += pocet * 50;
-    }
+  const days = Math.ceil(hours / 24);
+  return `Za ${days} ${days === 1 ? 'den' : days < 5 ? 'dny' : 'dní'}`;
+}
+
+function saveTests() {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(tests));
+  render();
+}
+
+function renderDashboard() {
+  const today = new Date();
+  const nextWeek = new Date();
+  today.setHours(0, 0, 0, 0);
+  nextWeek.setDate(nextWeek.getDate() + 7);
+
+  const topicCount = tests.reduce((sum, test) => sum + test.topics.length, 0);
+  const completedTopics = tests.reduce((sum, test) => sum + test.topics.filter((topic) => topic.done).length, 0);
+
+  $('#all').textContent = tests.length;
+  $('#week').textContent = tests.filter((test) => new Date(test.date) >= today && new Date(test.date) <= nextWeek).length;
+  $('#progress').textContent = topicCount ? `${Math.round((completedTopics / topicCount) * 100)} %` : '0 %';
+  $('#welcome').textContent = tests.some((test) => isToday(test.date))
+    ? 'Dnes máš test – držíme palce!'
+    : 'Měj své testy, témata i přípravu pod kontrolou.';
+}
+
+function getFilteredTests() {
+  const query = $('#search').value.toLowerCase();
+  const priority = $('#priority').value;
+  const status = $('#status').value;
+
+  return [...tests]
+    .filter((test) => {
+      const matchesSearch = !query || test.subject.toLowerCase().includes(query);
+      const matchesPriority = priority === 'all' || test.difficulty === priority;
+      const matchesStatus = status === 'all' || (status === 'done' ? isFinished(test) : !isFinished(test));
+      return matchesSearch && matchesPriority && matchesStatus;
+    })
+    .sort((first, second) => new Date(first.date) - new Date(second.date));
+}
+
+function renderTests() {
+  const visibleTests = getFilteredTests();
+  const list = $('#list');
+  list.innerHTML = '';
+  $('#empty').classList.toggle('hidden', visibleTests.length > 0);
+
+  visibleTests.forEach((test) => {
+    const fragment = $('#card').content.cloneNode(true);
+    const card = fragment.querySelector('.card');
+    const testDate = new Date(test.date);
+    const completed = test.topics.filter((topic) => topic.done).length;
+
+    card.dataset.id = test.id;
+    card.classList.toggle('today', isToday(test.date));
+    card.querySelector('.date b').textContent = testDate.getDate();
+    card.querySelector('.date small').textContent = testDate.toLocaleDateString('cs-CZ', { month: 'short' });
+    card.querySelector('h3').textContent = test.subject;
+    card.querySelector('.cardHead i').classList.add(test.difficulty);
+    card.querySelector('.count').textContent = `${isToday(test.date) ? `Dnes v ${testDate.toLocaleTimeString('cs-CZ', { hour: '2-digit', minute: '2-digit' })}` : getCountdown(test.date)} • ${priorityLabel(test.difficulty)}`;
+    card.querySelector('.note').textContent = test.note;
+    card.querySelector('.prog b').textContent = test.topics.length ? `${completed}/${test.topics.length}` : 'Bez témat';
+    card.querySelector('.bar i').style.width = test.topics.length ? `${(completed / test.topics.length) * 100}%` : '0';
+
+    card.querySelector('.topics').innerHTML = test.topics.length
+      ? test.topics.map((topic, index) => `<label><input type="checkbox" data-topic="${index}" ${topic.done ? 'checked' : ''}><span>${escapeHtml(topic.text)}</span></label>`).join('')
+      : '<span>Přidej témata, která si chceš projít.</span>';
+
+    list.append(fragment);
   });
-
-  return body;
 }
 
-// Zjistí, zda hod obsahuje alespoň jednu bodovanou kombinaci.
-// Když ne, hráč ztrácí body v aktuálním tahu.
-function bodovanePozice(hod) {
-  if (spocitejBody(hod) === 0) return [];
-
-  const pocty = hod.map((hodnota) => hod.filter((x) => x === hodnota).length);
-  const postupka = hod.length === 6 && new Set(hod).size === 6;
-  const triPary = hod.length === 6 && pocty.every((pocet) => pocet === 2);
-
-  if (postupka || triPary) return hod.map((_, index) => index);
-
-  return hod
-    .map((hodnota, index) => (hodnota === 1 || hodnota === 5 || pocty[index] >= 3 ? index : -1))
-    .filter((index) => index !== -1);
+function render() {
+  renderDashboard();
+  renderTests();
 }
 
-function jePlatnyVyber(vyber) {
-  if (vyber.length === 0) return false;
-
-  const pocty = vyber.map((hodnota) => vyber.filter((x) => x === hodnota).length);
-  const postupka = vyber.length === 6 && new Set(vyber).size === 6;
-  const triPary = vyber.length === 6 && pocty.every((pocet) => pocet === 2);
-
-  if (postupka || triPary) return true;
-
-  return vyber.every((hodnota, index) => (
-    hodnota === 1 || hodnota === 5 || pocty[index] >= 3
-  ));
+function renderTopicChips() {
+  $('#chips').innerHTML = draftTopics
+    .map((topic, index) => `<span class="chip">${escapeHtml(topic)} <button type="button" data-i="${index}">×</button></span>`)
+    .join('');
 }
 
-function zobrazKostky() {
-  plochaKostek.innerHTML = '';
-  kostky.forEach((hodnota, index) => {
-    const kostka = document.createElement('button');
-    kostka.type = 'button';
-    kostka.className = `die${vybraneKostky.includes(index) ? ' selected' : ''}`;
-    kostka.textContent = obrazkyKostek[hodnota - 1];
-    // Vybrat lze každou kostku. Body však přidají pouze bodované kombinace.
-    kostka.disabled = !tahHrace || probihaHod;
-    kostka.addEventListener('click', () => vyberKostku(index));
-    plochaKostek.append(kostka);
-  });
+function addDraftTopic() {
+  const input = $('#topic');
+  const topic = input.value.trim();
+  if (!topic || draftTopics.includes(topic)) return;
 
-  const vyber = vybraneKostky.map((index) => kostky[index]);
-  document.querySelector('#selection-info').textContent = `Vybráno: ${spocitejBody(vyber).toLocaleString('cs-CZ')} bodů`;
+  draftTopics.push(topic);
+  input.value = '';
+  renderTopicChips();
 }
 
-function vyberKostku(index) {
-  if (vybraneKostky.includes(index)) {
-    vybraneKostky = vybraneKostky.filter((cislo) => cislo !== index);
-  } else {
-    vybraneKostky.push(index);
-  }
-  zobrazKostky();
-  zobrazStav();
-}
+function openForm(test) {
+  $('#form').reset();
+  draftTopics = test ? test.topics.map((topic) => topic.text) : [];
+  $('#id').value = test?.id || '';
+  $('#modalTitle').textContent = test ? 'Upravit test' : 'Přidat test';
 
-function zobrazStav() {
-  document.querySelector('#human-score').textContent = mojeBody.toLocaleString('cs-CZ');
-  document.querySelector('#computer-score').textContent = bodyPocitace.toLocaleString('cs-CZ');
-  document.querySelector('#round-score').textContent = bodyVTahu.toLocaleString('cs-CZ');
-  document.querySelector('#turn-label').textContent = tahHrace ? 'Tvůj tah' : 'Tah počítače';
-  document.querySelector('#human-card').classList.toggle('active', tahHrace);
-  document.querySelector('#computer-card').classList.toggle('active', !tahHrace);
-
-  tlacitkoHodit.disabled = !tahHrace || probihaHod || (cekamNaVyber && vybraneKostky.length === 0);
-  tlacitkoUlozit.disabled = !tahHrace || probihaHod || (bodyVTahu === 0 && vybraneKostky.length === 0);
-  tlacitkoHodit.innerHTML = cekamNaVyber
-    ? 'Potvrdit a házet dál <span>🎲</span>'
-    : kostky.length ? 'Házet dál <span>🎲</span>' : 'Hodit kostkami <span>🎲</span>';
-}
-
-function hodit() {
-  if (!tahHrace || probihaHod) return;
-
-  // Pokud už kostky na stole jsou, musí si hráč nejdřív nějaké vybrat.
-  if (cekamNaVyber && vybraneKostky.length === 0) {
-    napoveda.textContent = 'Nejdřív vyber alespoň jednu kostku.';
-    return;
+  if (test) {
+    $('#subject').value = test.subject;
+    $('#date').value = test.date.slice(0, 16);
+    $('#difficulty').value = test.difficulty;
+    $('#note').value = test.note;
   }
 
-  const odlozene = vybraneKostky.map((index) => kostky[index]);
-  bodyVTahu += spocitejBody(odlozene);
-
-  // Odložím dvě jedničky → další hod bude právě čtyřmi kostkami.
-  // Počet kostek pro další hod se počítá z kostek na stole, ne vždy ze šesti.
-  // Např. ze 3 kostek odložím 2 → házím už jen 1 kostkou.
-  const pocetNovychKostek = odlozene.length === kostky.length
-    ? 6
-    : kostky.length - odlozene.length;
-  kostky = Array.from({ length: pocetNovychKostek }, nahodnaKostka);
-  vybraneKostky = [];
-  cekamNaVyber = false;
-  probihaHod = true;
-  zobrazKostky();
-  [...plochaKostek.children].forEach((kostka) => kostka.classList.add('rolling'));
-  zobrazStav();
-
-  setTimeout(() => {
-    probihaHod = false;
-
-    if (bodovanePozice(kostky).length === 0) {
-      bodyVTahu = 0;
-      // Neúspěšný hod necháme chvíli na stole, aby hráč viděl, co padlo.
-      probihaHod = true;
-      napoveda.textContent = 'Žádná bodovaná kombinace…';
-      zobrazKostky();
-      zobrazStav();
-      setTimeout(() => {
-        kostky = [];
-        probihaHod = false;
-        napoveda.textContent = 'Prohrál/a jsi tento tah. Tah přebírá počítač.';
-        zobrazKostky();
-        zobrazStav();
-        setTimeout(tahPocitace, 700);
-      }, 1400);
-      return;
-    }
-
-    cekamNaVyber = true;
-    napoveda.textContent = 'Klikni na libovolné kostky, které chceš odložit.';
-    zobrazKostky();
-    zobrazStav();
-  }, 450);
+  renderTopicChips();
+  $('#modal').showModal();
+  $('#subject').focus();
 }
 
-function ulozitBody() {
-  const odlozene = vybraneKostky.map((index) => kostky[index]);
-  bodyVTahu += spocitejBody(odlozene);
-  mojeBody += bodyVTahu;
+$('#add').onclick = () => openForm();
+$('#emptyAdd').onclick = () => openForm();
+document.querySelectorAll('.close').forEach((button) => { button.onclick = () => $('#modal').close(); });
 
-  if (mojeBody >= cil) return konecHry('Vyhráváš!', mojeBody);
-
-  napoveda.textContent = `Uloženo ${bodyVTahu} bodů. Tah přebírá počítač.`;
-  bodyVTahu = 0;
-  kostky = [];
-  vybraneKostky = [];
-  cekamNaVyber = false;
-  tahHrace = false;
-  zobrazKostky();
-  zobrazStav();
-  setTimeout(tahPocitace, 900);
-}
-
-function tahPocitace() {
-  // Počítač hraje jednoduše: hází, dokud nemá aspoň 400 bodů.
-  let zisk = 0;
-  let pocetKostek = 6;
-
-  for (let pokus = 0; pokus < 8 && zisk < 400; pokus++) {
-    const hod = Array.from({ length: pocetKostek }, nahodnaKostka);
-    const pozice = bodovanePozice(hod);
-
-    if (pozice.length === 0) {
-      zisk = 0;
-      break;
-    }
-
-    const vyber = pozice.map((index) => hod[index]);
-    zisk += spocitejBody(vyber);
-    pocetKostek = vyber.length === pocetKostek ? 6 : pocetKostek - vyber.length;
+$('#topic').onkeydown = (event) => {
+  if (event.key === 'Enter') {
+    event.preventDefault();
+    addDraftTopic();
   }
+};
 
-  bodyPocitace += zisk;
-  if (bodyPocitace >= cil) return konecHry('Počítač vyhrál', bodyPocitace);
+$('#chips').onclick = (event) => {
+  if (event.target.dataset.i === undefined) return;
+  draftTopics.splice(event.target.dataset.i, 1);
+  renderTopicChips();
+};
 
-  tahHrace = true;
-  napoveda.textContent = zisk ? `Počítač ukládá ${zisk} bodů. Jsi na tahu.` : 'Počítač nehodil body. Jsi na tahu.';
-  zobrazStav();
+$('#form').onsubmit = (event) => {
+  event.preventDefault();
+  addDraftTopic();
+
+  const id = $('#id').value;
+  const oldTest = tests.find((test) => test.id === id);
+  const test = {
+    id: id || crypto.randomUUID(),
+    subject: $('#subject').value.trim(),
+    date: $('#date').value,
+    difficulty: $('#difficulty').value,
+    note: $('#note').value.trim(),
+    topics: draftTopics.map((text) => ({ text, done: oldTest?.topics.find((topic) => topic.text === text)?.done || false })),
+  };
+
+  tests = id ? tests.map((item) => (item.id === id ? test : item)) : [...tests, test];
+  $('#modal').close();
+  saveTests();
+};
+
+$('#list').onclick = (event) => {
+  const card = event.target.closest('.card');
+  const test = card && tests.find((item) => item.id === card.dataset.id);
+  if (!test) return;
+
+  if (event.target.closest('.edit')) openForm(test);
+  if (event.target.closest('.delete') && confirm('Opravdu chceš tento test smazat?')) {
+    tests = tests.filter((item) => item !== test);
+    saveTests();
+  }
+};
+
+$('#list').onchange = (event) => {
+  if (event.target.dataset.topic === undefined) return;
+  const test = tests.find((item) => item.id === event.target.closest('.card').dataset.id);
+  test.topics[event.target.dataset.topic].done = event.target.checked;
+  saveTests();
+};
+
+['#search', '#priority', '#status'].forEach((selector) => { $(selector).oninput = render; });
+$('#clear').onclick = () => { $('#search').value = ''; $('#priority').value = 'all'; $('#status').value = 'all'; render(); };
+
+$('#theme').onclick = () => {
+  document.body.classList.toggle('dark');
+  const dark = document.body.classList.contains('dark');
+  $('#theme').textContent = dark ? '☀' : '☾';
+  localStorage.setItem(THEME_KEY, dark ? 'dark' : 'light');
+};
+
+if (localStorage.getItem(THEME_KEY) === 'dark') {
+  document.body.classList.add('dark');
+  $('#theme').textContent = '☀';
 }
 
-function konecHry(nadpis, body) {
-  document.querySelector('#modal-title').textContent = nadpis;
-  document.querySelector('#modal-text').textContent = `Dosaženo ${body.toLocaleString('cs-CZ')} bodů.`;
-  document.querySelector('#modal').classList.remove('hidden');
-}
-
-function novaHra() {
-  mojeBody = 0; bodyPocitace = 0; bodyVTahu = 0;
-  kostky = []; vybraneKostky = [];
-  tahHrace = true; cekamNaVyber = false; probihaHod = false;
-  document.querySelector('#modal').classList.add('hidden');
-  napoveda.textContent = 'Hoď kostkami a vyber ty, které chceš odložit.';
-  zobrazKostky();
-  zobrazStav();
-}
-
-tlacitkoHodit.addEventListener('click', hodit);
-tlacitkoUlozit.addEventListener('click', ulozitBody);
-document.querySelector('#new-game').addEventListener('click', novaHra);
-document.querySelector('#play-again').addEventListener('click', novaHra);
-novaHra();
+render();

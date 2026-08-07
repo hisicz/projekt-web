@@ -1,26 +1,34 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="cs">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Studijní plánovač</title>
-  <link rel="stylesheet" href="dcz_style.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Studijní plánovač</title>
+    <link rel="stylesheet" href="dcz_style.css">
 </head>
+
 <body>
-  <main class="container">
+
+<div class="container">
     <h1>📚 Studijní plánovač</h1>
 
     <div class="input-area">
-      <input id="taskInput" type="text" placeholder="Zadej nový úkol...">
-      <button id="addBtn" type="button">Přidat</button>
+        <input type="text" id="taskInput" placeholder="Zadej nový úkol...">
+        <button id="addBtn">Přidat</button>
     </div>
 
-    <div class="progress"><div id="progressBar"></div></div>
-    <p id="progressText">0 % hotovo</p>
-    <ul id="taskList"></ul>
-    <button id="clearBtn" type="button">Odstranit splněné</button>
-  </main>
+    <div class="progress">
+        <div id="progressBar"></div>
+    </div>
 
-  <script src="dcz_script.js"></script>
+    <p id="progressText">0 % hotovo</p>
+
+    <ul id="taskList"></ul>
+
+    <button id="clearBtn">Odstranit splněné</button>
+</div>
+
+<script src="dcz_script.js"></script>
+
 </body>
 </html>

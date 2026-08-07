@@ -1,3 +1,4 @@
+<<<<<<< Updated upstream
 ﻿// Student Test Planner
 // Data jsou uložená v Local Storage, takže zůstanou i po obnově stránky.
 
@@ -217,3 +218,5 @@ if (localStorage.getItem(THEME_KEY) === 'dark') {
 }
 
 render();
+=======
+>>>>>>> Stashed changes

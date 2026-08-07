@@ -8,6 +8,7 @@
   <link rel="stylesheet" href="fridge.css">
 </head>
 <body>
+  <!-- Obal celé aplikace. -->
   <div class="app-shell">
     <header class="topbar">
       <a class="brand" href="fridge.html"><span class="brand-icon">❄</span> Chytrá <strong>lednice</strong></a>
@@ -16,6 +17,7 @@
       </div>
     </header>
 
+    <!-- Hlavní obsah stránky. -->
     <main>
       <section class="hero">
         <div>
@@ -26,12 +28,14 @@
         <div class="hero-art" aria-hidden="true">🥬<span>🍅</span><i>✦</i></div>
       </section>
 
+      <!-- Tři počítadla: potraviny, recepty a nákup. -->
       <section class="stats" aria-label="Rychlý přehled">
         <article><span class="stat-icon green">▣</span><div><strong id="food-count">0</strong><p>potravin v lednici</p></div></article>
         <article><span class="stat-icon purple">⌑</span><div><strong id="recipe-count">0</strong><p>dostupných receptů</p></div></article>
         <article><span class="stat-icon orange">☷</span><div><strong id="shopping-count">0</strong><p>položek na nákupu</p></div></article>
       </section>
 
+      <!-- Dvě hlavní části vedle sebe: lednice a nákupní seznam. -->
       <div class="page-grid">
         <section class="panel food-panel">
           <div class="section-heading"><div><p class="eyebrow">OBSAH LEDNICE</p><h2>Moje potraviny</h2></div><button id="open-food-form" class="primary-button" type="button">＋ Přidat</button></div>
@@ -46,6 +50,7 @@
         </section>
       </div>
 
+      <!-- Seznam receptů a tlačítko pro vytvoření vlastního receptu. -->
       <section class="recipes-section">
         <div class="section-heading"><div><p class="eyebrow">CO UVAŘIT?</p><h2>Recepty z tvých surovin</h2></div><div class="recipe-actions"><p class="heading-note">Shoda vychází z ingrediencí v lednici.</p><button id="open-recipe-form" class="primary-button" type="button">＋ Přidat recept</button></div></div>
         <div id="recipe-list" class="recipe-list"></div><p id="recipe-empty" class="empty-message">Zatím nemáš žádné recepty. Přidej svůj první recept.</p>
@@ -53,6 +58,7 @@
     </main>
   </div>
 
+  <!-- Okno s formulářem pro přidání potraviny. -->
   <dialog id="food-dialog" class="food-dialog">
     <form id="food-form">
       <div class="dialog-heading"><div><p class="eyebrow">NOVÁ POTRAVINA</p><h2>Přidat do lednice</h2></div><button class="close-dialog icon-button" type="button" aria-label="Zavřít">×</button></div>
@@ -72,6 +78,7 @@
   </dialog>
 
 
+  <!-- Okno s formulářem pro přidání receptu. -->
   <dialog id="recipe-dialog" class="food-dialog">
     <form id="recipe-form">
       <div class="dialog-heading"><div><p class="eyebrow">NOVÝ RECEPT</p><h2>Přidat recept</h2></div><button class="close-recipe-dialog icon-button" type="button" aria-label="Zavřít">×</button></div>
@@ -88,7 +95,9 @@
       <div class="dialog-actions"><button class="text-button close-recipe-dialog" type="button">Zrušit</button><button class="primary-button" type="submit">Uložit recept</button></div>
     </form>
   </dialog>
+  <!-- Šablona jedné potraviny; JavaScript ji vyplní daty. -->
   <template id="food-template"><article class="food-item"><span class="category-icon"></span><div class="food-details"><h3></h3><p></p></div><div class="expiry"><strong></strong><span></span></div><button class="delete-food" type="button" aria-label="Smazat potravinu">×</button></article></template>
+  <!-- Šablona jedné karty receptu; JavaScript ji vyplní daty. -->
   <template id="recipe-template"><article class="recipe-card"><div class="recipe-top"><span class="recipe-emoji"></span><div><p class="recipe-type"></p><h3></h3></div></div><div class="match-row"><div class="match-bar"><i></i></div><strong class="match-percent"></strong></div><p class="ingredient-info"></p><div class="missing-ingredients"></div><button class="add-missing" type="button">＋ Přidat chybějící na nákup</button><button class="delete-recipe" type="button">Smazat recept</button></article></template>
 
   <script src="fridge.js"></script>

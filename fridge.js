@@ -1,8 +1,12 @@
 ﻿// Chytrá lednice: veškerá data jsou uložená pouze v Local Storage prohlížeče.
+// Název místa, pod kterým ukládáme potraviny.
 const FOOD_STORAGE_KEY = 'smart-fridge-food';
+// Název místa, pod kterým ukládáme nákupní seznam.
 const SHOPPING_STORAGE_KEY = 'smart-fridge-shopping';
+// Název místa, pod kterým ukládáme zvolený vzhled.
 const THEME_STORAGE_KEY = 'smart-fridge-theme';
 
+// Název místa, pod kterým ukládáme recepty.
 const RECIPE_STORAGE_KEY = 'smart-fridge-recipes';
 
 // Pomocná funkce pro kratší zápis surovin ve výchozích receptech.
@@ -43,14 +47,19 @@ const DEFAULT_RECIPES = [
 ];
 
 // Výchozí recepty se uloží jen tehdy, když uživatel zatím žádné vlastní nemá.
+// Načte dříve uložené recepty, nebo prázdné pole.
 const savedRecipes = JSON.parse(localStorage.getItem(RECIPE_STORAGE_KEY) || '[]');
+// Použije uložené recepty; při prvním spuštění použije výchozí.
 let recipes = savedRecipes.length ? savedRecipes : DEFAULT_RECIPES;
 
 if (!savedRecipes.length) {
   localStorage.setItem(RECIPE_STORAGE_KEY, JSON.stringify(recipes));
 }
+// Zkratka pro vyhledání prvku v HTML.
 const $ = (selector) => document.querySelector(selector);
+// Načte uložené potraviny.
 let foods = JSON.parse(localStorage.getItem(FOOD_STORAGE_KEY) || '[]');
+// Načte uložený nákupní seznam.
 let shoppingList = JSON.parse(localStorage.getItem(SHOPPING_STORAGE_KEY) || '[]');
 
 const categoryIcons = {
@@ -58,6 +67,7 @@ const categoryIcons = {
   'Pečivo': '🥖', 'Trvanlivé': '🥫', 'Nápoje': '🧃', 'Ostatní': '🍽️',
 };
 
+// Uloží všechna data a obnoví obsah stránky.
 function saveData() {
   localStorage.setItem(FOOD_STORAGE_KEY, JSON.stringify(foods));
   localStorage.setItem(SHOPPING_STORAGE_KEY, JSON.stringify(shoppingList));
@@ -65,25 +75,27 @@ function saveData() {
   render();
 }
 
+// Podle data vrátí text a barvu stavu potraviny.  o pulnoci se to mneni
 function getFoodStatus(expiryDate) {
   const today = new Date();
   today.setHours(0, 0, 0, 0);
   const expiry = new Date(`${expiryDate}T00:00:00`);
   const days = Math.ceil((expiry - today) / 86400000);
-
   if (days < 0) return { className: 'expired', title: 'Prošlé', text: `Prošlo před ${Math.abs(days)} d.` };
   if (days === 0) return { className: 'soon', title: 'Dnes', text: 'Spotřebuj dnes' };
   if (days <= 3) return { className: 'soon', title: 'Brzy', text: `Spotřebuj za ${days} d.` };
   return { className: '', title: 'V pořádku', text: `Spotřeba ${new Date(expiryDate).toLocaleDateString('cs-CZ')}` };
 }
 
+// Obnoví tři počítadla nahoře na stránce.
 function renderDashboard() {
-  const availableRecipes = recipes.filter((recipe) => getRecipeMatch(recipe).complete).length;
-  $('#food-count').textContent = foods.length;
+  const availableRecipes = recipes.filter((recipe) => getRecipeMatch(recipe).complete).length;//kolik receptů jde udelat
+  $('#food-count').textContent = foods.length;//vypisování
   $('#recipe-count').textContent = availableRecipes;
   $('#shopping-count').textContent = shoppingList.length;
 }
 
+// Vypíše všechny potraviny do části „Moje potraviny“.
 function renderFoods() {
   const list = $('#food-list');
   list.innerHTML = '';
@@ -107,6 +119,7 @@ function renderFoods() {
     });
 }
 
+// Sjednotí text pro porovnání bez rozdílu velkých písmen a mezer.
 function normalize(text) {
   return text.toLocaleLowerCase('cs-CZ').trim();
 }
@@ -120,6 +133,7 @@ function getIngredientData(ingredient) {
   return ingredient;
 }
 
+// Zjistí, zda datum spotřeby už proběhlo.
 function isExpired(expiryDate) {
   const today = new Date();
   today.setHours(0, 0, 0, 0);
@@ -127,33 +141,13 @@ function isExpired(expiryDate) {
 }
 
 // Surovina je dostupná jen tehdy, když není prošlá, má stejnou jednotku a dostatečné množství.
-function getIngredientAvailability(rawIngredient) {
-  const ingredient = getIngredientData(rawIngredient);
-  const requestedName = normalize(ingredient.name);
-  const requestedAmount = Number(ingredient.amount);
-
-  if (PANTRY_STAPLES.has(requestedName)) {
-    return { ingredient, available: true, reason: 'základní surovina', shortage: 0 };
-  }
-
-  const matchingFoods = foods.filter((food) => {
-    const foodName = normalize(food.name);
-    return foodName.includes(requestedName) || requestedName.includes(foodName);
-  });
-  const usableFoods = matchingFoods.filter((food) => !isExpired(food.expiry) && food.unit === ingredient.unit && Number(food.amount) > 0);
-  const availableAmount = usableFoods.reduce((sum, food) => sum + Number(food.amount), 0);
-  const shortage = Math.max(0, requestedAmount - availableAmount);
-
-  if (shortage === 0) return { ingredient, available: true, reason: '', shortage: 0 };
-  if (matchingFoods.some((food) => isExpired(food.expiry))) return { ingredient, available: false, reason: 'je prošlá', shortage };
-  if (matchingFoods.some((food) => food.unit !== ingredient.unit)) return { ingredient, available: false, reason: 'má jinou jednotku', shortage };
-  if (matchingFoods.length) return { ingredient, available: false, reason: 'není jí dostatek', shortage };
-  return { ingredient, available: false, reason: 'chybí', shortage };
-}
+// Zjistí, zda je pro recept dost dané suroviny.
+ 
 
 function formatShortage(item) {
-  return `${item.ingredient.name} – koupit ${item.shortage} ${item.ingredient.unit} (${item.reason})`;
+  return `${item.ingredient.name} - koupit ${item.shortage} ${item.ingredient.unit} (${item.reason})`;
 }
+// Spočítá, kolik surovin pro recept je dostupných.
 function getRecipeMatch(recipe) {
   const results = recipe.ingredients.map(getIngredientAvailability);
   const missing = results.filter((result) => !result.available);
@@ -167,6 +161,7 @@ function getRecipeMatch(recipe) {
   };
 }
 
+// Vypíše všechny recepty a jejich stav.
 function renderRecipes() {
   const list = $('#recipe-list');
   list.innerHTML = '';
@@ -199,6 +194,7 @@ function renderRecipes() {
     list.append(fragment);
   });
 }
+// Vypíše položky nákupního seznamu.
 function renderShoppingList() {
   const list = $('#shopping-list');
   list.innerHTML = '';
@@ -219,6 +215,7 @@ function render() {
   renderRecipes();
 }
 
+// Otevře formulář pro přidání potraviny.
 function openFoodDialog() {
   $('#food-form').reset();
   $('#food-dialog').showModal();
@@ -228,6 +225,7 @@ function openFoodDialog() {
 $('#open-food-form').addEventListener('click', openFoodDialog);
 document.querySelectorAll('.close-dialog').forEach((button) => button.addEventListener('click', () => $('#food-dialog').close()));
 
+// Po odeslání formuláře uloží novou potravinu.
 $('#food-form').addEventListener('submit', (event) => {
   event.preventDefault();
 
@@ -253,6 +251,7 @@ $('#food-form').addEventListener('submit', (event) => {
   saveData();
 });
 
+// Po kliknutí na křížek odstraní potravinu.
 $('#food-list').addEventListener('click', (event) => {
   const deleteButton = event.target.closest('.delete-food');
   if (!deleteButton) return;
@@ -262,6 +261,7 @@ $('#food-list').addEventListener('click', (event) => {
   saveData();
 });
 
+// Obsluhuje smazání receptu i přidání chybějících surovin na nákup.
 $('#recipe-list').addEventListener('click', (event) => {
   const card = event.target.closest('.recipe-card');
   if (event.target.closest('.delete-recipe')) {
@@ -283,6 +283,7 @@ $('#recipe-list').addEventListener('click', (event) => {
   saveData();
 });
 
+// Po kliknutí na křížek odstraní jednu položku nákupu.
 $('#shopping-list').addEventListener('click', (event) => {
   const button = event.target.closest('button');
   if (!button) return;
@@ -297,6 +298,7 @@ $('#clear-shopping').addEventListener('click', () => {
   }
 });
 
+// Přepne světlý a tmavý vzhled.
 $('#theme-toggle').addEventListener('click', () => {
   document.body.classList.toggle('dark');
   const darkMode = document.body.classList.contains('dark');
@@ -332,6 +334,7 @@ scheduleMidnightRefresh();
 
 
 // Obsluha formuláře pro uživatelem přidané recepty.
+// Vytvoří jeden řádek pro surovinu v novém receptu.
 function createIngredientRow() {
   const row = document.createElement('div');
   row.className = 'ingredient-row';
@@ -347,6 +350,7 @@ function createIngredientRow() {
   return row;
 }
 
+// Vymaže staré řádky a vytvoří jeden prázdný.
 function resetIngredientRows() {
   const container = $('#recipe-ingredients');
   container.innerHTML = '';
@@ -359,6 +363,7 @@ function formatIngredient(ingredient) {
     : `${ingredient.name} (${ingredient.amount} ${ingredient.unit})`;
 }
 
+// Otevře formulář pro vytvoření receptu.
 function openRecipeDialog() {
   $('#recipe-form').reset();
   $('#recipe-emoji').value = '🍲';
@@ -383,6 +388,7 @@ document.querySelectorAll('.close-recipe-dialog').forEach((button) => {
   button.addEventListener('click', () => $('#recipe-dialog').close());
 });
 
+// Po odeslání formuláře uloží nový recept.
 $('#recipe-form').addEventListener('submit', (event) => {
   event.preventDefault();
   const ingredients = [...document.querySelectorAll('.ingredient-row')].map((row) => ({

@@ -1,111 +1,66 @@
-document.addEventListener('DOMContentLoaded', () => {
-    const taskInput = document.getElementById("taskInput");
-    const addBtn = document.getElementById("addBtn");
-    const taskList = document.getElementById("taskList");
-    const progressBar = document.getElementById("progressBar");
-    const progressText = document.getElementById("progressText");
-    const clearBtn = document.getElementById("clearBtn");
+// Najdeme prvky z HTML.
+const input = document.querySelector('#taskInput');
+const list = document.querySelector('#taskList');
+const progress = document.querySelector('#progressBar');
+const progressText = document.querySelector('#progressText');
 
-    if (!taskInput || !addBtn || !taskList) return;
+// Úkoly jsou uložené v prohlížeči, takže po obnovení stránky nezmizí.
+let tasks = JSON.parse(localStorage.getItem('tasks') || '[]');
 
-    let tasks = JSON.parse(localStorage.getItem("tasks")) || [];
+function saveTasks() {
+  localStorage.setItem('tasks', JSON.stringify(tasks));
+}
 
-    function saveTasks() {
-        localStorage.setItem("tasks", JSON.stringify(tasks));
-    }
+function render() {
+  list.innerHTML = '';
 
-    function updateProgress() {
-        if (tasks.length === 0) {
-            progressBar.style.width = "0%";
-            progressText.textContent = "0 % hotovo";
-            return;
-        }
+  tasks.forEach((task, index) => {
+    const item = document.createElement('li');
+    item.innerHTML = `
+      <label class="task">
+        <input type="checkbox" ${task.done ? 'checked' : ''}>
+        <span class="${task.done ? 'completed' : ''}"></span>
+      </label>
+      <button class="delete" type="button">Smazat</button>`;
 
-        const completed = tasks.filter(task => task.done).length;
-        const percent = Math.round((completed / tasks.length) * 100);
-
-        progressBar.style.width = percent + "%";
-        progressText.textContent = percent + " % hotovo";
-    }
-
-    function renderTasks() {
-        taskList.innerHTML = "";
-
-        tasks.forEach((task, index) => {
-
-            const li = document.createElement("li");
-
-            const taskDiv = document.createElement("div");
-            taskDiv.className = "task";
-
-            const checkbox = document.createElement("input");
-            checkbox.type = "checkbox";
-            checkbox.checked = task.done;
-
-            const span = document.createElement("span");
-            span.textContent = task.text;
-
-            if (task.done) {
-                span.classList.add("completed");
-            }
-
-            checkbox.addEventListener("change", () => {
-                tasks[index].done = checkbox.checked;
-                saveTasks();
-                renderTasks();
-            });
-
-            const deleteBtn = document.createElement("button");
-            deleteBtn.textContent = "Smazat";
-            deleteBtn.className = "delete";
-
-            deleteBtn.addEventListener("click", () => {
-                tasks.splice(index, 1);
-                saveTasks();
-                renderTasks();
-            });
-
-            taskDiv.appendChild(checkbox);
-            taskDiv.appendChild(span);
-
-            li.appendChild(taskDiv);
-            li.appendChild(deleteBtn);
-
-            taskList.appendChild(li);
-        });
-
-        updateProgress();
-    }
-
-    addBtn.addEventListener("click", () => {
-
-        const text = taskInput.value.trim();
-
-        if (text === "") return;
-
-        tasks.push({
-            text: text,
-            done: false
-        });
-
-        taskInput.value = "";
-
-        saveTasks();
-        renderTasks();
+    item.querySelector('span').textContent = task.text;
+    item.querySelector('input').addEventListener('change', (event) => {
+      tasks[index].done = event.target.checked;
+      saveTasks();
+      render();
     });
-
-    taskInput.addEventListener("keydown", function (e) {
-        if (e.key === "Enter") {
-            e.preventDefault();
-            addBtn.click();
-        }
+    item.querySelector('.delete').addEventListener('click', () => {
+      tasks.splice(index, 1);
+      saveTasks();
+      render();
     });
+    list.append(item);
+  });
 
-    clearBtn.addEventListener("click", () => {
-        tasks = tasks.filter(task => !task.done);
-        saveTasks();
-        renderTasks();
-    });
+  const completed = tasks.filter((task) => task.done).length;
+  const percent = tasks.length ? Math.round((completed / tasks.length) * 100) : 0;
+  progress.style.width = `${percent}%`;
+  progressText.textContent = `${percent} % hotovo`;
+}
 
-    renderTasks();
+function addTask() {
+  const text = input.value.trim();
+  if (!text) return;
+
+  tasks.push({ text, done: false });
+  input.value = '';
+  saveTasks();
+  render();
+}
+
+document.querySelector('#addBtn').addEventListener('click', addTask);
+input.addEventListener('keydown', (event) => {
+  if (event.key === 'Enter') addTask();
 });
+document.querySelector('#clearBtn').addEventListener('click', () => {
+  tasks = tasks.filter((task) => !task.done);
+  saveTasks();
+  render();
+});
+
+render();
